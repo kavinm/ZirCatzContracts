@@ -40,13 +40,20 @@ contract ZirCatNip is Ownable {
         uint256 supply,
         uint256 amount
     ) public pure returns (uint256) {
-        uint256 sum1 = supply == 0
-            ? 0
-            : ((supply - 1) * (supply) * (2 * (supply - 1) + 1)) / 6;
+        if (supply == 0 || amount == 0) {
+            return 0;
+        }
+
+        uint256 sum1 = ((supply - 1) * supply * (2 * (supply - 1) + 1)) / 6;
         uint256 sum2 = ((supply + amount - 1) *
             (supply + amount) *
             (2 * (supply + amount - 1) + 1)) / 6;
-        uint256 summation = sum2 > sum1 ? sum2 - sum1 : 0;
+
+        if (sum2 <= sum1) {
+            return 0;
+        }
+
+        uint256 summation = sum2 - sum1;
         return (summation * 1 ether) / 100000000;
     }
 
@@ -63,7 +70,9 @@ contract ZirCatNip is Ownable {
         require(msg.value >= price + protocolFee, "Insufficient payment");
 
         sharesBalance[msg.sender] += amount;
-        totalValueDeposited += price;
+
+        // Update this line
+        totalValueDeposited += amount; // Instead of price
 
         emit Trade(
             block.timestamp,
@@ -82,14 +91,23 @@ contract ZirCatNip is Ownable {
 
     function sellShares(uint256 amount) public {
         require(sharesBalance[msg.sender] >= amount, "Insufficient shares");
+        require(
+            totalValueDeposited >= amount,
+            "Not enough shares in circulation"
+        );
 
         uint256 supply = totalValueDeposited;
-        uint256 price = getPrice(supply - amount, amount);
+        uint256 price = getPrice(supply, amount);
+
+        // Add a minimum price for selling shares
+        uint256 minPrice = (amount * 1 ether) / 100000000; // 0.00000001 ether per share
+        price = price > minPrice ? price : minPrice;
+
         uint256 protocolFee = (price * protocolFeePercent) / 1 ether;
         uint256 netAmount = price - protocolFee;
 
         sharesBalance[msg.sender] -= amount;
-        totalValueDeposited -= price;
+        totalValueDeposited -= amount;
 
         emit Trade(
             block.timestamp,
@@ -101,6 +119,12 @@ contract ZirCatNip is Ownable {
             supply - amount,
             totalValueDeposited
         );
+
+        uint256 contractBalance = address(this).balance;
+
+        if (netAmount > contractBalance) {
+            netAmount = contractBalance / 2;
+        }
 
         (bool success1, ) = msg.sender.call{value: netAmount}("");
         (bool success2, ) = protocolFeeDestination.call{value: protocolFee}("");

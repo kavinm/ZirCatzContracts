@@ -10,6 +10,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract ZirCats is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable {
     uint256 private _nextTokenId;
 
+    event TextSet(uint256 indexed tokenId, string text);
+
     constructor(
         address initialOwner
     ) ERC721("ZirCats", "ZCAT") Ownable(initialOwner) {}
@@ -18,6 +20,14 @@ contract ZirCats is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable {
         uint256 tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
+    }
+
+    function setText(uint256 tokenId, string calldata text) public {
+        require(
+            msg.sender == ownerOf(tokenId),
+            "You are not the owner of this NFT"
+        );
+        emit TextSet(tokenId, text);
     }
 
     // The following functions are overrides required by Solidity.

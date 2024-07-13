@@ -2,7 +2,7 @@ const { ethers } = require("hardhat");
 
 async function main() {
   // Define the contract address and ABI
-  const contractAddress = "0x52efc82b54E9EFD38865Ed5572fb35bfFd16e87d"; // Replace with your ZirCatNip contract address
+  const contractAddress = "0x5c176044E88db2Abc9db7117f8a9994B7ebc23f8"; // Replace with your ZirCatNip contract address
   const contractABI = [
     "function buyShares(uint256 amount) public payable",
     "function calculateBuyPrice(uint256 amount) public view returns (uint256)",

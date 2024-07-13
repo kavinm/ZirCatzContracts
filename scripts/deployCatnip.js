@@ -2,7 +2,7 @@ const { ethers } = require("hardhat");
 
 async function main() {
   // Address of the already deployed ZirCats contract
-  const zirCatsAddress = "0xD3b647A7b76c8251260662D956001943b0A669A8";
+  const zirCatsAddress = "0x7D37e8fb2c0AD546DfeF3f8E39d3EEEd9D9ac82C";
 
   // Get the contract factory for ZirCatNip
   const ZirCatNip = await ethers.getContractFactory("ZirCatNip");
